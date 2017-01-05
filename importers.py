@@ -3,7 +3,7 @@ import csv
 
 class CSVImportCommand(object):
     def __init__(
-            self, file_name='', api_url, token,
+            self, file_name, api_url, token,
             skip_header=False, encoding=None):
         self.api_url = api_url
         self.token = token

@@ -35,13 +35,13 @@ class BusImportCommand(CSVImportCommand):
 
 
 @click.command()
-@click.option('--file-name', help='Bus stops *.csv file')
+@click.option('--filename', help='Bus stops *.csv file')
 @click.option(
-    '--api-url',
+    '--apiurl',
     default='http://localhost:8000/api/busstop/', help='API url')
-@click.option('--api-token', help='API authentication token')
-def import_busstops(filename, apiurl, token):
-    command = BusImportCommand(filename, apiurl, token)
+@click.option('--apitoken', help='API authentication token')
+def import_busstops(filename, apiurl, apitoken):
+    command = BusImportCommand(filename, apiurl, apitoken)
     command.run()
 
 if __name__ == '__main__':
