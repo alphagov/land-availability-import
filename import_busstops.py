@@ -16,7 +16,8 @@ class BusImportCommand(CSVImportCommand):
             "direction": row[5],
             "area": row[6],
             "road": row[7],
-            "nptg_code": row[9]
+            "nptg_code": row[9],
+            "srid": 27700
         }
 
         headers = {'Authorization': 'Token {0}'.format(self.token)}
