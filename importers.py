@@ -1,4 +1,5 @@
 import csv
+import shapefile
 
 
 class CSVImportCommand(object):
@@ -27,3 +28,21 @@ class CSVImportCommand(object):
 
                 for row in reader:
                     self.process_row(row)
+
+
+class ShapefileImportCommand(object):
+    def __init__(self, file_name, api_url, token):
+        self.api_url = api_url
+        self.token = token
+        self.file_name = file_name
+
+    def process_record(self, record):
+        pass
+
+    def run(self):
+        if self.file_name:
+            reader = shapefile.Reader(self.file_name)
+            for record in reader.shapeRecords():
+                if record.shape.shapeType == shapefile.NULL:
+                    continue
+                self.process_record(record)
