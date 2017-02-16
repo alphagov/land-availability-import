@@ -20,13 +20,13 @@ class CSVStreamImportCommand(object):
 
         for area_record in record['line_items']:
             area_value = round(
-                float(area_record['area'].replace('N/A', '0')), 2)
-            price_value = round(float(area_record['price']), 2)
-            value_value = round(float(area_record['value']), 2)
+                float(area_record.get('area', '0').replace('N/A', '0')), 2)
+            price_value = round(float(area_record.get('price', '0')), 2)
+            value_value = round(float(area_record.get('value', '0')), 2)
 
             area = {
-                "floor": area_record['floor'],
-                "description": area_record['description'],
+                "floor": area_record.get('floor'),
+                "description": area_record.get('description'),
                 "area": area_value,
                 "price": price_value,
                 "value": value_value
@@ -38,14 +38,14 @@ class CSVStreamImportCommand(object):
         additional_payload = []
 
         for additional_record in record['additional']:
-            size_value = round(float(additional_record['size']), 2)
-            price_value = round(float(additional_record['price']), 2)
+            size_value = round(float(additional_record.get('size', '0')), 2)
+            price_value = round(float(additional_record.get('price', '0')), 2)
             value_value = round(
-                float(additional_record['value'].replace('+', '')), 2)
+                float(additional_record.get('value', '0').replace('+', '')), 2)
 
             additional = {
-                "other_oa_description": area_record['floor'],
-                "description": area_record['description'],
+                "other_oa_description": area_record.get('floor'),
+                "description": area_record.get('description'),
                 "area": size_value,
                 "price": price_value,
                 "value": value_value
@@ -58,10 +58,11 @@ class CSVStreamImportCommand(object):
 
         for adjustment_record in record['adjustments']:
             percent_value = round(
-                float(adjustment_record['percent'].replace('%', '')), 2)
+                float(
+                    adjustment_record.get('percent', '0').replace('%', '')), 2)
 
             adjustment = {
-                "description": adjustment_record['description'],
+                "description": adjustment_record.get('description'),
                 "description": percent_value,
             }
 
@@ -71,41 +72,49 @@ class CSVStreamImportCommand(object):
             "area": area_payload,
             "additional": additional_payload,
             "adjustment": adjustment_payload,
-            "assessment_reference": record['details']['assessment_reference'],
-            "uarn": record['details']['uarn'],
-            "ba_code": record['details']['ba_code'],
-            "firm_name": record['details']['firm_name'],
-            "number_or_name": record['details']['number_or_name'],
-            "sub_street_3": record['details']['sub_street_3'],
-            "sub_street_2": record['details']['sub_street_2'],
-            "sub_street_1": record['details']['sub_street_1'],
-            "street": record['details']['street'],
-            "town": record['details']['town'],
-            "postal_district": record['details']['postal_district'],
-            "county": record['details']['county'],
-            "postcode": record['details']['postcode'],
-            "scheme_ref": record['details']['scheme_ref'],
-            "primary_description": record['details']['primary_description'],
-            "total_area": round(float(record['details']['total_area']), 2),
-            "subtotal": round(float(record['details']['subtotal']), 2),
-            "total_value": round(float(record['details']['total_value']), 2),
-            "adopted_rv": round(float(record['details']['adopted_rv']), 2),
-            "list_year": int(record['details']['list_year']),
-            "ba_name": record['details']['ba_name'],
-            "ba_reference_number": record['details']['ba_reference_number'],
-            "vo_ref": record['details']['vo_ref'],
-            "from_date": record['details']['from_date'],
-            "to_date": record['details']['to_date'],
-            "scat_code_only": record['details']['scat_code_only'],
-            "unit_of_measurement": record['details']['unit_of_measurement'],
-            "unadjusted_price": record['details']['unadjusted_price']
+            "assessment_reference": record[
+                'details'].get('assessment_reference'),
+            "uarn": record['details'].get('uarn'),
+            "ba_code": record['details'].get('ba_code'),
+            "firm_name": record['details'].get('firm_name'),
+            "number_or_name": record['details'].get('number_or_name'),
+            "sub_street_3": record['details'].get('sub_street_3'),
+            "sub_street_2": record['details'].get('sub_street_2'),
+            "sub_street_1": record['details'].get('sub_street_1'),
+            "street": record['details'].get('street'),
+            "town": record['details'].get('town'),
+            "postal_district": record['details'].get('postal_district'),
+            "county": record['details'].get('county'),
+            "postcode": record['details'].get('postcode'),
+            "scheme_ref": record['details'].get('scheme_ref'),
+            "primary_description": record[
+                'details'].get('primary_description'),
+            "total_area": round(
+                float(record['details'].get('total_area', '0')), 2),
+            "subtotal": round(
+                float(record['details'].get('subtotal', '0')), 2),
+            "total_value": round(
+                float(record['details'].get('total_value', '0')), 2),
+            "adopted_rv": round(
+                float(record['details'].get('adopted_rv', '0')), 2),
+            "list_year": int(record['details'].get('list_year', '0')),
+            "ba_name": record['details'].get('ba_name'),
+            "ba_reference_number": record[
+                'details'].get('ba_reference_number'),
+            "vo_ref": record['details'].get('vo_ref'),
+            "from_date": record['details'].get('from_date'),
+            "to_date": record['details'].get('to_date'),
+            "scat_code_only": record['details'].get('scat_code_only'),
+            "unit_of_measurement": record[
+                'details'].get('unit_of_measurement'),
+            "unadjusted_price": record['details'].get('unadjusted_price')
         }
 
         if record['adjustment_totals']:
             payload['adjustement_total_before'] = round(float(record[
-                'adjustment_totals']['total_before']), 2)
+                'adjustment_totals'].get('total_before')), 2)
             payload['adjustement_total'] = round(float(record[
-                'adjustment_totals']['total_adjustment']), 2)
+                'adjustment_totals'].get('total_adjustment')), 2)
 
         headers = {'Authorization': 'Token {0}'.format(self.token)}
 
@@ -130,7 +139,13 @@ class CSVStreamImportCommand(object):
                 reader = csv.reader(csvfile, delimiter='*', quotechar='"')
 
                 for record in process(reader):
-                    self.process_record(record)
+                    try:
+                        self.process_record(record)
+                    except Exception as ex:
+                        print(
+                            'ERROR: could not import {0}'
+                            'because of {1}'.format(
+                                record['details'].get('uarn'), ex))
 
 
 @click.command()
