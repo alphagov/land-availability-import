@@ -69,9 +69,9 @@ class CSVStreamImportCommand(object):
             adjustment_payload.append(adjustment)
 
         payload = {
-            "area": area_payload,
-            "additional": additional_payload,
-            "adjustment": adjustment_payload,
+            "areas": area_payload,
+            "additionals": additional_payload,
+            "adjustments": adjustment_payload,
             "assessment_reference": record[
                 'details'].get('assessment_reference'),
             "uarn": record['details'].get('uarn'),
