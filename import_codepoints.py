@@ -32,11 +32,11 @@ class CodepointImportCommand(CSVImportCommand):
             headers=headers)
 
         if response.status_code == 201:
-            print('{0} imported correctly'.format(row[0]))
+            print('{0} imported correctly'.format(postcode))
         else:
             print(
                 'ERROR: could not import {0} because of {1}'.format(
-                    row[0], response.text))
+                    postcode, response.text))
 
 
 @click.command()
