@@ -39,7 +39,7 @@ class BusImportCommand(CSVImportCommand):
 @click.option('--filename', help='Bus stops *.csv file')
 @click.option(
     '--apiurl',
-    default='http://localhost:8000/api/busstop/', help='API url')
+    default='http://localhost:8000/api/busstops/', help='API url')
 @click.option('--apitoken', help='API authentication token')
 def import_busstops(filename, apiurl, apitoken):
     command = BusImportCommand(filename, apiurl, apitoken)

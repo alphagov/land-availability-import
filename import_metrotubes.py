@@ -39,7 +39,7 @@ class MetroTubeImportCommand(CSVImportCommand):
 @click.option('--filename', help='Metro and Tube *.csv file')
 @click.option(
     '--apiurl',
-    default='http://localhost:8000/api/metrotube/', help='API url')
+    default='http://localhost:8000/api/metrotubes/', help='API url')
 @click.option('--apitoken', help='API authentication token')
 def import_metrotubes(filename, apiurl, apitoken):
     command = MetroTubeImportCommand(

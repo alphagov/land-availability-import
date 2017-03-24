@@ -32,7 +32,7 @@ class MotorwaysImportCommand(ShapefileImportCommand):
 @click.option('--filename', help='Motorways *.shp file')
 @click.option(
     '--apiurl',
-    default='http://localhost:8000/api/motorway/', help='API url')
+    default='http://localhost:8000/api/motorways/', help='API url')
 @click.option('--apitoken', help='API authentication token')
 def import_motorways(filename, apiurl, apitoken):
     command = MotorwaysImportCommand(filename, apiurl, apitoken)

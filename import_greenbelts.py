@@ -54,7 +54,7 @@ class GreenbeltsImportCommand(object):
 @click.option('--filename', help='Greenbelts *.json file')
 @click.option(
     '--apiurl',
-    default='http://localhost:8000/api/greenbelt/', help='API url')
+    default='http://localhost:8000/api/greenbelts/', help='API url')
 @click.option('--apitoken', help='API authentication token')
 def import_greenbelts(filename, apiurl, apitoken):
     command = GreenbeltsImportCommand(filename, apiurl, apitoken)
