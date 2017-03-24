@@ -42,7 +42,7 @@ class SchoolsImportCommand(CSVImportCommand):
 @click.option('--filename', help='Schools *.csv file')
 @click.option(
     '--apiurl',
-    default='http://localhost:8000/api/school/', help='API url')
+    default='http://localhost:8000/api/schools/', help='API url')
 @click.option('--apitoken', help='API authentication token')
 def import_schools(filename, apiurl, apitoken):
     command = SchoolsImportCommand(

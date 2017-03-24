@@ -38,7 +38,7 @@ class SubstationsImportCommand(ShapefileImportCommand):
 @click.option('--filename', help='Substations *.shp file')
 @click.option(
     '--apiurl',
-    default='http://localhost:8000/api/substation/', help='API url')
+    default='http://localhost:8000/api/substations/', help='API url')
 @click.option('--apitoken', help='API authentication token')
 def import_substations(filename, apiurl, apitoken):
     command = SubstationsImportCommand(filename, apiurl, apitoken)

@@ -40,7 +40,7 @@ class TrainImportCommand(CSVImportCommand):
 @click.option('--filename', help='Train stops *.csv file')
 @click.option(
     '--apiurl',
-    default='http://localhost:8000/api/trainstop/', help='API url')
+    default='http://localhost:8000/api/trainstops/', help='API url')
 @click.option('--apitoken', help='API authentication token')
 def import_trainstops(filename, apiurl, apitoken):
     command = TrainImportCommand(filename, apiurl, apitoken, True)

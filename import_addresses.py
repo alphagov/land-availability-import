@@ -41,7 +41,7 @@ class AddressImportCommand(CSVImportCommand):
 @click.option('--filename', help='Addresses *.csv file')
 @click.option(
     '--apiurl',
-    default='http://localhost:8000/api/address/', help='API url')
+    default='http://localhost:8000/api/addresses/', help='API url')
 @click.option('--apitoken', help='API authentication token')
 def import_addresses(filename, apiurl, apitoken):
     command = AddressImportCommand(filename, apiurl, apitoken)

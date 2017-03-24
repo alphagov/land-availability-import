@@ -44,7 +44,7 @@ class BroadbandImportCommand(CSVImportCommand):
 @click.option('--filename', help='Broadbands *.csv file')
 @click.option(
     '--apiurl',
-    default='http://localhost:8000/api/broadband/', help='API url')
+    default='http://localhost:8000/api/broadbands/', help='API url')
 @click.option('--apitoken', help='API authentication token')
 def import_broadbands(filename, apiurl, apitoken):
     command = BroadbandImportCommand(filename, apiurl, apitoken, True)

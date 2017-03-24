@@ -38,7 +38,7 @@ class OverheadLinesImportCommand(ShapefileImportCommand):
 @click.option('--filename', help='OverheadLines *.shp file')
 @click.option(
     '--apiurl',
-    default='http://localhost:8000/api/overheadline/', help='API url')
+    default='http://localhost:8000/api/overheadlines/', help='API url')
 @click.option('--apitoken', help='API authentication token')
 def import_overheadlines(filename, apiurl, apitoken):
     command = OverheadLinesImportCommand(filename, apiurl, apitoken)

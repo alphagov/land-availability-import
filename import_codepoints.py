@@ -43,7 +43,7 @@ class CodepointImportCommand(CSVImportCommand):
 @click.option('--filename', help='Codepoints *.csv file')
 @click.option(
     '--apiurl',
-    default='http://localhost:8000/api/codepoint/', help='API url')
+    default='http://localhost:8000/api/codepoints/', help='API url')
 @click.option('--apitoken', help='API authentication token')
 def import_codepoints(filename, apiurl, apitoken):
     command = CodepointImportCommand(filename, apiurl, apitoken)
