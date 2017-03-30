@@ -54,6 +54,8 @@ class CambridgeLandsImportCommand(CSVImportCommand):
 
                 if voa_data:
                     estimated_floor_space = voa_data.get('total_area')
+                else:
+                    estimated_floor_space = 0
 
                 data = {
                     "uprn": uprn,
