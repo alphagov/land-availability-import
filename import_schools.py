@@ -8,11 +8,18 @@ class SchoolsImportCommand(CSVImportCommand):
     def process_row(self, row):
         # Only import schools with easting and northing information
         if row[68] and row[69]:
+            if 'Primary' in row[11]:
+                school_type = 'PRIMARY'
+            elif 'Secondary' in row[11]:
+                school_type = 'SECONDARY'
+            else:
+                school_type = 'UNKNOWN'
+
             data = {
                 "urn": row[0],
                 "la_name": row[2],
                 "school_name": row[4],
-                "school_type": row[11],
+                "school_type": school_type,
                 "school_capacity": int(row[20]) if row[20] else 0,
                 "school_pupils": int(row[23]) if row[23] else 0,
                 "postcode": row[44].replace(' ', ''),
