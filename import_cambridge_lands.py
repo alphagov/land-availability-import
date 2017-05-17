@@ -1,6 +1,7 @@
 from importers import CSVImportCommand
 import requests
 import click
+from utils import transform_polygons_to_multipolygon
 
 
 class CambridgeLandsImportCommand(CSVImportCommand):
@@ -61,7 +62,9 @@ class CambridgeLandsImportCommand(CSVImportCommand):
                     "uprn": uprn,
                     "ba_ref": ba_ref,
                     "name": row[6],
-                    "geom": lr_data['features'][0]['geometry'],
+                    "geom": transform_polygons_to_multipolygon(
+                        lr_data['title']['polygons']
+                    ),
                     "authority": row[0],
                     "owner": 'Cambridge',
                     "estimated_floor_space": estimated_floor_space,
