@@ -1,4 +1,6 @@
 def transform_polygons_to_multipolygon(polygons):
+    # This method expects the Polygons ins GeoJSON format and will return a
+    # MultiPolygon in GeoJSON format too.
     if len(polygons) == 0:
         return None
 
