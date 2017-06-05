@@ -42,7 +42,7 @@ class ShapefileImportCommand(object):
     def run(self):
         if self.file_name:
             reader = shapefile.Reader(self.file_name)
-            for record in reader.shapeRecords():
+            for record in reader.iterShapeRecords():
                 if record.shape.shapeType == shapefile.NULL:
                     continue
                 self.process_record(record)
