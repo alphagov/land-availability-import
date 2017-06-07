@@ -142,8 +142,12 @@ class CSVStreamImportCommand(object):
                     try:
                         self.process_record(record)
                     except Exception as ex:
+                        if 'BdbQuit' in repr(ex):
+                            # this allows you to use pdb to quit, otherwise you
+                            # need to kill to exit pdb
+                            raise
                         print(
-                            'ERROR: could not import {0}'
+                            'ERROR: could not import {0} '
                             'because of {1}'.format(
                                 record['details'].get('uarn'), ex))
 
@@ -154,8 +158,9 @@ class CSVStreamImportCommand(object):
     '--apiurl',
     default='http://localhost:8000/api/voa/', help='API url')
 @click.option('--apitoken', help='API authentication token')
-def import_addresses(filename, apiurl, apitoken):
-    command = CSVStreamImportCommand(filename, apiurl, apitoken)
+@click.option('--encoding', default='utf-8', help='Encoding of the csv ("utf-8" default, use utf-8-sig" if it has a BOM')
+def import_addresses(filename, apiurl, apitoken, encoding):
+    command = CSVStreamImportCommand(filename, apiurl, apitoken, encoding=encoding)
     command.run()
 
 if __name__ == '__main__':
