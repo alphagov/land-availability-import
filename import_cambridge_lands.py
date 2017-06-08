@@ -101,12 +101,29 @@ class CambridgeLandsImportCommand(CSVImportCommand):
     '--voaapiurl',
     default='http://localhost:8002/api/voa/',
     help='VOA API url')
-@click.option('--voatoken', help='VOS API authentication token')
+@click.option('--voatoken', help='VOA API authentication token')
 def import_cambridge(
         filename, apiurl, apitoken, lrapiurl, lrtoken, voaurl, voatoken):
+    '''Import Cambridge vacant properties data as Locations.
+
+    1. Get data from:
+            https://www.cambridge.gov.uk/open-data
+       titled "NDR accounts".
+       e.g. https://www.cambridge.gov.uk/sites/default/files/nndr_accounts_2017-04.xlsx
+
+       According to the council:
+       > You can find the date declared vacant in column F. A property is
+       > vacant if it states EPRN or EPRI in column O, or if it states VOID in
+       > column N.
+
+    2. Open in Excel and export as CSV
+
+    3. Run this import
+    '''
     command = CambridgeLandsImportCommand(
         filename, apiurl, apitoken, lrapiurl, lrtoken, voaurl, voatoken)
     command.run()
+
 
 if __name__ == '__main__':
     import_cambridge()
