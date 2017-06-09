@@ -1,3 +1,5 @@
+import itertools
+
 from importers import CSVImportCommand
 import requests
 import click
@@ -28,62 +30,83 @@ class CambridgeLandsImportCommand(CSVImportCommand):
         headers = {'Authorization': 'Token {0}'.format(self.lr_token)}
         response = requests.get(url, headers=headers)
 
-        if response.status_code == 200:
-            return response.json()
-        else:
+        if response.status_code == 404:
             return None
+        response.raise_for_status()
+        return response.json()
 
     def get_voa_data(self, ba_ref):
         url = '{0}{1}'.format(self.voa_api_url, ba_ref)
         headers = {'Authorization': 'Token {0}'.format(self.voa_token)}
         response = requests.get(url, headers=headers)
 
-        if response.status_code == 200:
-            return response.json()
-        else:
+        if response.status_code == 404:
             return None
+        response.raise_for_status()
+        return response.json()
 
     def process_row(self, row):
         uprn = row[3]
 
-        if (uprn != '' and uprn != '0'):
-            if (row[14] == 'EPRN' or row[14] == 'EPRI' or row[13] == 'VOID'):
-                lr_data = self.get_lr_data(uprn)
+        if not (row[14] == 'EPRN' or row[14] == 'EPRI' or row[13] == 'VOID'):
+            return 'Ignore - not vacant'
+        if (uprn in ('', '0')):
+            return 'Error - no uprn'
 
-                ba_ref = row[4]
-                voa_data = self.get_voa_data(ba_ref)
+        try:
+            lr_data = self.get_lr_data(uprn)
+        except Exception as e:
+            return 'Error accessing LR server: {}'.format(
+                repr(e).replace(uprn, '<UPRN>'))
+        if not lr_data:
+            # We can't find polygons without a matching uprn, therefore discard
+            return 'Error - no LR data for uprn'
 
-                if voa_data:
-                    estimated_floor_space = voa_data.get('total_area')
-                else:
-                    estimated_floor_space = 0
+        ba_ref = row[4]
+        try:
+            voa_data = self.get_voa_data(ba_ref)
+        except Exception as e:
+            # URL incorrect? Internet down? Do not fail silently
+            return 'Error accessing VOA server: {}'.format(e)
 
-                data = {
-                    "uprn": uprn,
-                    "ba_ref": ba_ref,
-                    "name": row[6],
-                    "geom": transform_polygons_to_multipolygon(
-                        lr_data['title']['polygons']
-                    ),
-                    "authority": row[0],
-                    "owner": 'Cambridge',
-                    "estimated_floor_space": estimated_floor_space,
-                    "srid": 4326
-                }
+        if voa_data:
+            estimated_floor_space = voa_data.get('total_area')
+            voa_status = 'with voa data'
+        else:
+            estimated_floor_space = 0
+            voa_status = 'without voa data'
 
-                headers = {'Authorization': 'Token {0}'.format(self.token)}
+        data = {
+            "uprn": uprn,
+            "ba_ref": ba_ref,
+            "name": row[6],
+            "geom": transform_polygons_to_multipolygon(
+                list(itertools.chain.from_iterable(
+                    title['polygons'] for title in lr_data['titles']
+                    ))
+            ),
+            "authority": row[0],
+            "owner": 'Cambridge',
+            "estimated_floor_space": estimated_floor_space,
+            "srid": 4326
+        }
 
-                response = requests.post(
-                    self.api_url,
-                    json=data,
-                    headers=headers)
+        headers = {'Authorization': 'Token {0}'.format(self.token)}
 
-                if response.status_code == 201:
-                    print('{0} imported correctly'.format(uprn))
-                else:
-                    print(
-                        'ERROR: could not import {0} because of {1}'.format(
-                            uprn, response.text))
+        response = requests.post(
+            self.api_url,
+            json=data,
+            headers=headers)
+
+        if response.status_code == 201:
+            print('{0} imported correctly'.format(uprn))
+            return 'processed ' + voa_status
+        else:
+            print(
+                'ERROR: could not import {0} because of {1}'.format(
+                    uprn, response.text))
+            return 'Error saving data to API: {} {}'.format(
+                response.status_code, response.text)
 
 
 @click.command()
@@ -101,12 +124,29 @@ class CambridgeLandsImportCommand(CSVImportCommand):
     '--voaapiurl',
     default='http://localhost:8002/api/voa/',
     help='VOA API url')
-@click.option('--voatoken', help='VOS API authentication token')
+@click.option('--voatoken', help='VOA API authentication token')
 def import_cambridge(
-        filename, apiurl, apitoken, lrapiurl, lrtoken, voaurl, voatoken):
+        filename, apiurl, apitoken, lrapiurl, lrtoken, voaapiurl, voatoken):
+    '''Import Cambridge vacant properties data as Locations.
+
+    1. Get data from:
+            https://www.cambridge.gov.uk/open-data
+       titled "NDR accounts".
+       e.g. https://www.cambridge.gov.uk/sites/default/files/nndr_accounts_2017-04.xlsx
+
+       According to the council:
+       > You can find the date declared vacant in column F. A property is
+       > vacant if it states EPRN or EPRI in column O, or if it states VOID in
+       > column N.
+
+    2. Open in Excel and export as CSV
+
+    3. Run this import
+    '''
     command = CambridgeLandsImportCommand(
-        filename, apiurl, apitoken, lrapiurl, lrtoken, voaurl, voatoken)
+        filename, apiurl, apitoken, lrapiurl, lrtoken, voaapiurl, voatoken)
     command.run()
+
 
 if __name__ == '__main__':
     import_cambridge()

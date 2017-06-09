@@ -5,6 +5,15 @@ Land Availability Tool Import scripts
 
 [![Travis-CI Status](https://secure.travis-ci.org/alphagov/land-availability-import.png?branch=master)](http://travis-ci.org/#!/alphagov/land-availability-import)
 
+# Help
+
+See each script for more information
+
+e.g.
+
+    python import_voa.py --help
+
+
 # Example
 
 ```

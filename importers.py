@@ -1,5 +1,9 @@
 import csv
 import shapefile
+from collections import defaultdict
+import time
+
+from utils import print_outcomes_and_rate
 
 
 class CSVImportCommand(object):
@@ -26,8 +30,17 @@ class CSVImportCommand(object):
                 if self.skip_header:
                     next(reader)
 
-                for row in reader:
-                    self.process_row(row)
+                outcomes = defaultdict(list)
+                start_time = time.time()
+                for count, row in enumerate(reader):
+                    outcome = self.process_row(row)
+                    outcomes[outcome or 'processed'].append(row)
+                    if count % 100 == 0:
+                        print_outcomes_and_rate(
+                            outcomes, start_time)
+                        print()
+                print_outcomes_and_rate(
+                    outcomes, start_time)
 
 
 class ShapefileImportCommand(object):
