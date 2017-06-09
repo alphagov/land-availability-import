@@ -1,18 +1,25 @@
+import time
+import csv
+from collections import defaultdict
+import traceback
+
 import requests
 import click
-import csv
+
 from voa_utils import process
+from utils import print_outcomes_and_rate
 
 
 class CSVStreamImportCommand(object):
     def __init__(
             self, file_name, api_url, token,
-            skip_header=False, encoding=None):
+            skip_header=False, encoding=None, pdb=False):
         self.api_url = api_url
         self.token = token
         self.file_name = file_name
         self.skip_header = skip_header
         self.encoding = encoding
+        self.pdb = pdb
 
     def process_record(self, record):
         # Process Area payloads
@@ -37,11 +44,16 @@ class CSVStreamImportCommand(object):
         # Process Additional payloads
         additional_payload = []
 
+        def to_float_or_none(val):
+            if not val:
+                return None
+            return round(float(val), 2)
+
         for additional_record in record['additional']:
-            size_value = round(float(additional_record.get('size', '0')), 2)
-            price_value = round(float(additional_record.get('price', '0')), 2)
-            value_value = round(
-                float(additional_record.get('value', '0').replace('+', '')), 2)
+            size_value = to_float_or_none(additional_record.get('size', '0'))
+            price_value = to_float_or_none(additional_record.get('price', '0'))
+            value_value = to_float_or_none(
+                additional_record.get('value', '0').replace('+', ''))
 
             additional = {
                 "other_oa_description": area_record.get('floor'),
@@ -57,9 +69,8 @@ class CSVStreamImportCommand(object):
         adjustment_payload = []
 
         for adjustment_record in record['adjustments']:
-            percent_value = round(
-                float(
-                    adjustment_record.get('percent', '0').replace('%', '')), 2)
+            percent_value = to_float_or_none(
+                adjustment_record.get('percent', '0').replace('%', ''))
 
             adjustment = {
                 "description": adjustment_record.get('description'),
@@ -118,17 +129,26 @@ class CSVStreamImportCommand(object):
 
         headers = {'Authorization': 'Token {0}'.format(self.token)}
 
-        response = requests.post(
-            self.api_url,
-            json=payload,
-            headers=headers)
+        try:
+            response = requests.post(
+                self.api_url,
+                json=payload,
+                headers=headers)
+        except Exception as e:
+            print(
+                'ERROR: could not import {0} because of {1}'.format(
+                    payload['uarn'], response.text))
+            return 'Error POSTing - {}'.format(e)
 
         if response.status_code == 201:
-            print('{0} imported correctly'.format(payload['uarn']))
+            #print('{0} imported correctly'.format(payload['uarn']))
+            return 'processed'
         else:
             print(
                 'ERROR: could not import {0} because of {1}'.format(
                     payload['uarn'], response.text))
+            return 'Error POSTing - {} {}'.format(response.status_code,
+                                                  response.text)
 
     def run(self):
         if self.file_name:
@@ -138,9 +158,12 @@ class CSVStreamImportCommand(object):
 
                 reader = csv.reader(csvfile, delimiter='*', quotechar='"')
 
-                for record in process(reader):
+                start_time = time.time()
+                outcomes = defaultdict(list)
+                for count, record in enumerate(process(reader)):
+                    outcome = None
                     try:
-                        self.process_record(record)
+                        outcome = self.process_record(record)
                     except Exception as ex:
                         if 'BdbQuit' in repr(ex):
                             # this allows you to use pdb to quit, otherwise you
@@ -148,20 +171,38 @@ class CSVStreamImportCommand(object):
                             raise
                         print(
                             'ERROR: could not import {0} '
-                            'because of {1}'.format(
+                            'because of: {1}'.format(
                                 record['details'].get('uarn'), ex))
+                        outcome = 'Error - {}'.format(ex)
+                        if self.pdb:
+                            traceback.print_exc()
+                            import pdb
+                            pdb.set_trace()
+                    outcomes[outcome or 'processed'].append(
+                        record['details'].get('uarn'))
+                    if count % 100 == 0:
+                        print_outcomes_and_rate(outcomes, start_time)
+                        print()
+                print_outcomes_and_rate(outcomes, start_time)
 
 
 @click.command()
 @click.option('--filename', help='Addresses *.csv file')
 @click.option(
     '--apiurl',
-    default='http://localhost:8000/api/voa/', help='API url')
+    default='http://localhost:8000/api/voa/',
+    help='API url e.g. http://localhost:8000/api/voa/')
 @click.option('--apitoken', help='API authentication token')
-@click.option('--encoding', default='utf-8', help='Encoding of the csv ("utf-8" default, use utf-8-sig" if it has a BOM')
-def import_addresses(filename, apiurl, apitoken, encoding):
-    command = CSVStreamImportCommand(filename, apiurl, apitoken, encoding=encoding)
+@click.option('--encoding', default='utf-8',
+              help='Encoding of the csv ("utf-8" default, use utf-8-sig" if it'
+              ' has a BOM')
+@click.option('--pdb', is_flag=True,
+              help='On exception, drop into pdb debugger')
+def import_addresses(filename, apiurl, apitoken, encoding, pdb):
+    command = CSVStreamImportCommand(filename, apiurl, apitoken,
+                                     encoding=encoding, pdb=pdb)
     command.run()
+
 
 if __name__ == '__main__':
     import_addresses()
