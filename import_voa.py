@@ -7,6 +7,7 @@ import requests
 import click
 
 from voa_utils import process
+from utils import print_outcomes_and_rate
 
 
 class CSVStreamImportCommand(object):
@@ -183,14 +184,6 @@ class CSVStreamImportCommand(object):
                         print_outcomes_and_rate(outcomes, start_time)
                         print()
                 print_outcomes_and_rate(outcomes, start_time)
-
-def print_outcomes_and_rate(outcomes, start_time):
-    total_count = sum([len(rows) for rows in outcomes.values()])
-    rate_per_hour = total_count / (time.time() - start_time) * 60 * 60
-    for outcome, rows in outcomes.items():
-        print('{} {} e.g. {}'.format(len(rows), outcome, rows[0]))
-    print('Count: {} Rate: {:.0f}/hour'
-          .format(total_count, round(rate_per_hour, -3)))
 
 
 @click.command()

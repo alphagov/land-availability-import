@@ -40,9 +40,15 @@ class ShapefileImportCommand(object):
         pass
 
     def run(self):
-        if self.file_name:
-            reader = shapefile.Reader(self.file_name)
-            for record in reader.iterShapeRecords():
-                if record.shape.shapeType == shapefile.NULL:
-                    continue
-                self.process_record(record)
+        print('Processing shapefile {}'.format(self.file_name))
+        outcomes = defaultdict(list)
+        start_time = time.time()
+        shp_reader = shapefile.Reader(self.file_name)
+        for count, record in enumerate(shp_reader.iterShapeRecords()):
+            if record.shape.shapeType == shapefile.NULL:
+                outcomes['no shapefile'].append(record[0])
+                continue
+            outcome = self.process_record(record)
+            outcomes[outcome or 'processed'].append(record[0])
+            if count % 100 == 0:
+                print_outcomes_and_rate(outcomes, start_time)
