@@ -1,8 +1,9 @@
 import itertools
 
-from importers import CSVImportCommand
 import requests
 import click
+
+from importers import CSVImportCommand
 from utils import transform_polygons_to_multipolygon
 
 
@@ -11,7 +12,8 @@ class CambridgeLandsImportCommand(CSVImportCommand):
             self, file_names, api_url, token,
             lr_api_url, lr_token,
             voa_api_url, voa_token,
-            skip_header=True, encoding=None):
+            skip_header=True, encoding=None,
+            filter_uprn=None):
         self.api_url = api_url
         self.token = token
         self.lr_api_url = lr_api_url
@@ -21,6 +23,7 @@ class CambridgeLandsImportCommand(CSVImportCommand):
         self.file_names = file_names
         self.skip_header = skip_header
         self.encoding = encoding
+        self.filter_uprn = filter_uprn
 
         if not self.lr_api_url.endswith('/'):
             self.lr_api_url = self.lr_api_url + '/'
@@ -47,6 +50,9 @@ class CambridgeLandsImportCommand(CSVImportCommand):
 
     def process_row(self, row):
         uprn = row[3]
+
+        if self.filter_uprn and uprn != self.filter_uprn:
+            return 'Filtered out by uprn'
 
         if not (row[14] == 'EPRN' or row[14] == 'EPRI' or row[13] == 'VOID'):
             return 'Ignore - not vacant'
@@ -125,8 +131,10 @@ class CambridgeLandsImportCommand(CSVImportCommand):
     default='http://localhost:8002/api/voa/',
     help='VOA API url')
 @click.option('--voatoken', help='VOA API authentication token')
+@click.option('-u', '--filter-uprn', help='Filter rows for a particular UPRN')
 def import_cambridge(
-        filenames, apiurl, apitoken, lrapiurl, lrtoken, voaapiurl, voatoken):
+        filenames, apiurl, apitoken, lrapiurl, lrtoken, voaapiurl, voatoken,
+        filter_uprn):
     '''Import Cambridge vacant properties data as Locations.
 
     1. Get data from:
@@ -144,7 +152,8 @@ def import_cambridge(
     3. Run this import
     '''
     command = CambridgeLandsImportCommand(
-        filenames, apiurl, apitoken, lrapiurl, lrtoken, voaapiurl, voatoken)
+        filenames, apiurl, apitoken, lrapiurl, lrtoken, voaapiurl, voatoken,
+        filter_uprn=filter_uprn)
     command.run()
 
 
