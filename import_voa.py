@@ -12,11 +12,11 @@ from utils import print_outcomes_and_rate
 
 class CSVStreamImportCommand(object):
     def __init__(
-            self, file_name, api_url, token,
+            self, file_names, api_url, token,
             skip_header=False, encoding=None, pdb=False):
         self.api_url = api_url
         self.token = token
-        self.file_name = file_name
+        self.file_names = file_names
         self.skip_header = skip_header
         self.encoding = encoding
         self.pdb = pdb
@@ -151,9 +151,9 @@ class CSVStreamImportCommand(object):
                                                   response.text)
 
     def run(self):
-        if self.file_name:
+        for file_name in self.file_names:
             with open(
-                    self.file_name,
+                    file_name,
                     newline='', encoding=self.encoding) as csvfile:
 
                 reader = csv.reader(csvfile, delimiter='*', quotechar='"')

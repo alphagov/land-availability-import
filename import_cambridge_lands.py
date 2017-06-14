@@ -8,7 +8,7 @@ from utils import transform_polygons_to_multipolygon
 
 class CambridgeLandsImportCommand(CSVImportCommand):
     def __init__(
-            self, file_name, api_url, token,
+            self, file_names, api_url, token,
             lr_api_url, lr_token,
             voa_api_url, voa_token,
             skip_header=True, encoding=None):
@@ -18,7 +18,7 @@ class CambridgeLandsImportCommand(CSVImportCommand):
         self.lr_token = lr_token
         self.voa_api_url = voa_api_url
         self.voa_token = voa_token
-        self.file_name = file_name
+        self.file_names = file_names
         self.skip_header = skip_header
         self.encoding = encoding
 
