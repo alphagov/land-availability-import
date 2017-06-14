@@ -46,14 +46,14 @@ class SchoolsImportCommand(CSVImportCommand):
 
 
 @click.command()
-@click.option('--filename', help='Schools *.csv file')
+@click.argument('filenames', nargs=-1, type=click.Path())
 @click.option(
     '--apiurl',
     default='http://localhost:8000/api/schools/', help='API url')
 @click.option('--apitoken', help='API authentication token')
-def import_schools(filename, apiurl, apitoken):
+def import_schools(filenames, apiurl, apitoken):
     command = SchoolsImportCommand(
-        filename, apiurl, apitoken, True, encoding='ISO-8859-1')
+        filenames, apiurl, apitoken, True, encoding='ISO-8859-1')
     command.run()
 
 if __name__ == '__main__':

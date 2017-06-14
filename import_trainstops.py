@@ -37,13 +37,13 @@ class TrainImportCommand(CSVImportCommand):
 
 
 @click.command()
-@click.option('--filename', help='Train stops *.csv file')
+@click.argument('filenames', nargs=-1, type=click.Path())
 @click.option(
     '--apiurl',
     default='http://localhost:8000/api/trainstops/', help='API url')
 @click.option('--apitoken', help='API authentication token')
-def import_trainstops(filename, apiurl, apitoken):
-    command = TrainImportCommand(filename, apiurl, apitoken, True)
+def import_trainstops(filenames, apiurl, apitoken):
+    command = TrainImportCommand(filenames, apiurl, apitoken, True)
     command.run()
 
 if __name__ == '__main__':

@@ -36,13 +36,13 @@ class BusImportCommand(CSVImportCommand):
 
 
 @click.command()
-@click.option('--filename', help='Bus stops *.csv file')
+@click.argument('filenames', nargs=-1, type=click.Path())
 @click.option(
     '--apiurl',
     default='http://localhost:8000/api/busstops/', help='API url')
 @click.option('--apitoken', help='API authentication token')
-def import_busstops(filename, apiurl, apitoken):
-    command = BusImportCommand(filename, apiurl, apitoken)
+def import_busstops(filenames, apiurl, apitoken):
+    command = BusImportCommand(filenames, apiurl, apitoken)
     command.run()
 
 if __name__ == '__main__':

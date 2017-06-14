@@ -187,7 +187,7 @@ class CSVStreamImportCommand(object):
 
 
 @click.command()
-@click.option('--filename', help='Addresses *.csv file')
+@click.argument('filenames', nargs=-1, type=click.Path())
 @click.option(
     '--apiurl',
     default='http://localhost:8000/api/voa/',
@@ -198,8 +198,8 @@ class CSVStreamImportCommand(object):
               ' has a BOM')
 @click.option('--pdb', is_flag=True,
               help='On exception, drop into pdb debugger')
-def import_addresses(filename, apiurl, apitoken, encoding, pdb):
-    command = CSVStreamImportCommand(filename, apiurl, apitoken,
+def import_addresses(filenames, apiurl, apitoken, encoding, pdb):
+    command = CSVStreamImportCommand(filenames, apiurl, apitoken,
                                      encoding=encoding, pdb=pdb)
     command.run()
 

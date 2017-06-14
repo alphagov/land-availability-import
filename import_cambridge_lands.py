@@ -110,7 +110,7 @@ class CambridgeLandsImportCommand(CSVImportCommand):
 
 
 @click.command()
-@click.option('--filename', help='Cambridge *.csv file')
+@click.argument('filenames', nargs=-1, type=click.Path())
 @click.option(
     '--apiurl',
     default='http://localhost:8000/api/locations/', help='API url')
@@ -126,7 +126,7 @@ class CambridgeLandsImportCommand(CSVImportCommand):
     help='VOA API url')
 @click.option('--voatoken', help='VOA API authentication token')
 def import_cambridge(
-        filename, apiurl, apitoken, lrapiurl, lrtoken, voaapiurl, voatoken):
+        filenames, apiurl, apitoken, lrapiurl, lrtoken, voaapiurl, voatoken):
     '''Import Cambridge vacant properties data as Locations.
 
     1. Get data from:
@@ -144,7 +144,7 @@ def import_cambridge(
     3. Run this import
     '''
     command = CambridgeLandsImportCommand(
-        filename, apiurl, apitoken, lrapiurl, lrtoken, voaapiurl, voatoken)
+        filenames, apiurl, apitoken, lrapiurl, lrtoken, voaapiurl, voatoken)
     command.run()
 
 

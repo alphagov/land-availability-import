@@ -38,13 +38,13 @@ class AddressImportCommand(CSVImportCommand):
 
 
 @click.command()
-@click.option('--filename', help='Addresses *.csv file')
+@click.argument('filenames', nargs=-1, type=click.Path())
 @click.option(
     '--apiurl',
     default='http://localhost:8000/api/addresses/', help='API url')
 @click.option('--apitoken', help='API authentication token')
-def import_addresses(filename, apiurl, apitoken):
-    command = AddressImportCommand(filename, apiurl, apitoken)
+def import_addresses(filenames, apiurl, apitoken):
+    command = AddressImportCommand(filenames, apiurl, apitoken)
     command.run()
 
 if __name__ == '__main__':
