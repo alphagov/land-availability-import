@@ -8,7 +8,7 @@ from utils import transform_polygons_to_multipolygon
 
 class CambridgeLandsImportCommand(CSVImportCommand):
     def __init__(
-            self, file_name, api_url, token,
+            self, file_names, api_url, token,
             lr_api_url, lr_token,
             voa_api_url, voa_token,
             skip_header=True, encoding=None):
@@ -18,7 +18,7 @@ class CambridgeLandsImportCommand(CSVImportCommand):
         self.lr_token = lr_token
         self.voa_api_url = voa_api_url
         self.voa_token = voa_token
-        self.file_name = file_name
+        self.file_names = file_names
         self.skip_header = skip_header
         self.encoding = encoding
 
@@ -110,7 +110,7 @@ class CambridgeLandsImportCommand(CSVImportCommand):
 
 
 @click.command()
-@click.option('--filename', help='Cambridge *.csv file')
+@click.argument('filenames', nargs=-1, type=click.Path())
 @click.option(
     '--apiurl',
     default='http://localhost:8000/api/locations/', help='API url')
@@ -126,7 +126,7 @@ class CambridgeLandsImportCommand(CSVImportCommand):
     help='VOA API url')
 @click.option('--voatoken', help='VOA API authentication token')
 def import_cambridge(
-        filename, apiurl, apitoken, lrapiurl, lrtoken, voaapiurl, voatoken):
+        filenames, apiurl, apitoken, lrapiurl, lrtoken, voaapiurl, voatoken):
     '''Import Cambridge vacant properties data as Locations.
 
     1. Get data from:
@@ -144,7 +144,7 @@ def import_cambridge(
     3. Run this import
     '''
     command = CambridgeLandsImportCommand(
-        filename, apiurl, apitoken, lrapiurl, lrtoken, voaapiurl, voatoken)
+        filenames, apiurl, apitoken, lrapiurl, lrtoken, voaapiurl, voatoken)
     command.run()
 
 

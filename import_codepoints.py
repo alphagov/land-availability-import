@@ -40,13 +40,13 @@ class CodepointImportCommand(CSVImportCommand):
 
 
 @click.command()
-@click.option('--filename', help='Codepoints *.csv file')
+@click.argument('filenames', nargs=-1, type=click.Path())
 @click.option(
     '--apiurl',
-    default='http://localhost:8000/api/codepoints/', help='API url')
-@click.option('--apitoken', help='API authentication token')
-def import_codepoints(filename, apiurl, apitoken):
-    command = CodepointImportCommand(filename, apiurl, apitoken)
+    default='http://localhost:8000/api/codepoints/', nargs=1, help='API url')
+@click.option('--apitoken', nargs=1, help='API authentication token')
+def import_codepoints(filenames, apiurl, apitoken):
+    command = CodepointImportCommand(filenames, apiurl, apitoken)
     command.run()
 
 if __name__ == '__main__':

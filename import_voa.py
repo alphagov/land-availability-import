@@ -12,11 +12,11 @@ from utils import print_outcomes_and_rate
 
 class CSVStreamImportCommand(object):
     def __init__(
-            self, file_name, api_url, token,
+            self, file_names, api_url, token,
             skip_header=False, encoding=None, pdb=False):
         self.api_url = api_url
         self.token = token
-        self.file_name = file_name
+        self.file_names = file_names
         self.skip_header = skip_header
         self.encoding = encoding
         self.pdb = pdb
@@ -151,9 +151,9 @@ class CSVStreamImportCommand(object):
                                                   response.text)
 
     def run(self):
-        if self.file_name:
+        for file_name in self.file_names:
             with open(
-                    self.file_name,
+                    file_name,
                     newline='', encoding=self.encoding) as csvfile:
 
                 reader = csv.reader(csvfile, delimiter='*', quotechar='"')
@@ -187,7 +187,7 @@ class CSVStreamImportCommand(object):
 
 
 @click.command()
-@click.option('--filename', help='Addresses *.csv file')
+@click.argument('filenames', nargs=-1, type=click.Path())
 @click.option(
     '--apiurl',
     default='http://localhost:8000/api/voa/',
@@ -198,8 +198,8 @@ class CSVStreamImportCommand(object):
               ' has a BOM')
 @click.option('--pdb', is_flag=True,
               help='On exception, drop into pdb debugger')
-def import_addresses(filename, apiurl, apitoken, encoding, pdb):
-    command = CSVStreamImportCommand(filename, apiurl, apitoken,
+def import_addresses(filenames, apiurl, apitoken, encoding, pdb):
+    command = CSVStreamImportCommand(filenames, apiurl, apitoken,
                                      encoding=encoding, pdb=pdb)
     command.run()
 

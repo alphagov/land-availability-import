@@ -8,11 +8,11 @@ from utils import print_outcomes_and_rate
 
 class CSVImportCommand(object):
     def __init__(
-            self, file_name, api_url, token,
+            self, file_names, api_url, token,
             skip_header=False, encoding=None):
         self.api_url = api_url
         self.token = token
-        self.file_name = file_name
+        self.file_names = file_names
         self.skip_header = skip_header
         self.encoding = encoding
 
@@ -20,9 +20,10 @@ class CSVImportCommand(object):
         pass
 
     def run(self):
-        if self.file_name:
+        for file_name in self.file_names:
+            print('Processing {0}'.format(file_name))
             with open(
-                    self.file_name,
+                    file_name,
                     newline='', encoding=self.encoding) as csvfile:
 
                 reader = csv.reader(csvfile, delimiter=',', quotechar='"')
@@ -39,8 +40,8 @@ class CSVImportCommand(object):
                         print_outcomes_and_rate(
                             outcomes, start_time)
                         print()
-                print_outcomes_and_rate(
-                    outcomes, start_time)
+        print_outcomes_and_rate(
+            outcomes, start_time)
 
 
 class ShapefileImportCommand(object):
