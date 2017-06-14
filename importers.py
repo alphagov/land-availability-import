@@ -59,9 +59,9 @@ class ShapefileImportCommand(object):
         shp_reader = shapefile.Reader(self.file_name)
         for count, record in enumerate(shp_reader.iterShapeRecords()):
             if record.shape.shapeType == shapefile.NULL:
-                outcomes['no shapefile'].append(record[0])
+                outcomes['no shapefile'].append(record.record[0])
                 continue
             outcome = self.process_record(record)
-            outcomes[outcome or 'processed'].append(record[0])
+            outcomes[outcome or 'processed'].append(record.record[0])
             if count % 100 == 0:
                 print_outcomes_and_rate(outcomes, start_time)
