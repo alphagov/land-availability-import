@@ -40,8 +40,7 @@ class CodepointImportCommand(CSVImportCommand):
 
 
 @click.command()
-@click.argument(
-    'filenames', nargs=-1, type=click.Path())
+@click.argument('filenames', nargs=-1, type=click.Path())
 @click.option(
     '--apiurl',
     default='http://localhost:8000/api/codepoints/', nargs=1, help='API url')
