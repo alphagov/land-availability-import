@@ -35,6 +35,9 @@ class CambridgeLandsImportCommand(CSVImportCommand):
                 self.vacant_csv_file, fieldnames=self.vacant_header,
                 dialect='excel')
             self.vacant_csv.writeheader()
+        else:
+            self.vacant_csv = None
+            self.vacant_csv_file = None
         assert self.lr_api_url.endswith('/api/')
 
     def get_lr_data(self, uprn):
@@ -77,6 +80,7 @@ class CambridgeLandsImportCommand(CSVImportCommand):
 
         def format_uprn_for_csv(uprn):
             return "'{}".format(int(uprn)) if uprn else ''
+
         def lookup_uprn_in_lr(uprn):
             try:
                 lr_data = self.get_lr_data(uprn)
@@ -84,7 +88,7 @@ class CambridgeLandsImportCommand(CSVImportCommand):
                 site_info['uprn_status'] = 'Error - contacting LR server'
                 raise FinishedProcessingRow(
                     'Error accessing LR server: {}'.format(
-                    repr(e).replace(uprn, '<UPRN>')))
+                        repr(e).replace(uprn, '<UPRN>')))
             if lr_data:
                 site_info['uprn_status'] = 'ok'
             return lr_data
@@ -105,53 +109,53 @@ class CambridgeLandsImportCommand(CSVImportCommand):
             except FinishedProcessingRow as ex:
                 return str(ex)
         finally:
-            if self.vacant_csv:
-                addressbase_response = \
-                    hmrc_addressbase.lookup_uprn_in_addressbase(uprn)
-                if addressbase_response:
-                    if len(addressbase_response) > 1:
-                        print('Warning too many addresses for single uprn')
-                    site_info['address_from_addressbase_uprn'] = \
-                        hmrc_addressbase.serialize_address(
-                            addressbase_response[0]['address'])
-                    lat_long = addressbase_response[0]['location']
-                    site_info['latlong_from_addressbase_uprn'] = lat_long
-                    # lookup lat/long in LR data
-                    results = self.get_lr_polygons_from_point(
-                        lat=lat_long[0], long=lat_long[1])
-                    titles = [
-                        result['title']
-                        for result in results
-                        if result['title']]
-                    uprns = list(itertools.chain.from_iterable([
-                        result['uprns']
-                        for result in results]))
-                    site_info['num_polygons_from_latlong_addressbase_uprn'] = \
-                        len(results)
-                    polygons = [result['polygon'] for result in results]
-                    site_info['num_unique_polygons_from_latlong_addressbase_uprn'] = \
-                        len(set(polygons))
-                    # site_info['polygon_from_latlong_addressbase_uprn'] = \
-                    #     [result['polygon'] for result in results]
-                    site_info['num_titles_from_latlong_addressbase_uprn'] = \
-                        len(titles)
-                    site_info['titles_from_latlong_addressbase_uprn'] = \
-                        titles
-                    site_info['num_uprns_from_latlong_addressbase_uprn'] = \
-                        len(uprns)
-                    site_info['uprns_from_latlong_addressbase_uprn'] = \
-                        uprns
-                    if site_info.get('uprn_status') != 'ok':
-                        if len(uprns) > 0:
-                            # we have derived the UPRN that Land Registry DOES
-                            # have with a polygon in the same place.
-                            uprn = uprns[0]
-                            site_info['assumed_uprn'] = \
-                                format_uprn_for_csv(uprn)
-                            try:
-                                lr_data = lookup_uprn_in_lr(uprn)
-                            except FinishedProcessingRow as ex:
-                                return str(ex) + ' (assumed uprn)'
+            addressbase_response = \
+                hmrc_addressbase.lookup_uprn_in_addressbase(uprn)
+            if addressbase_response:
+                if len(addressbase_response) > 1:
+                    print('Warning too many addresses for single uprn')
+                site_info['address_from_addressbase_uprn'] = \
+                    hmrc_addressbase.serialize_address(
+                        addressbase_response[0]['address'])
+                lat_long = addressbase_response[0]['location']
+                site_info['latlong_from_addressbase_uprn'] = lat_long
+                # lookup lat/long in LR data
+                results = self.get_lr_polygons_from_point(
+                    lat=lat_long[0], long=lat_long[1])
+                titles = [
+                    result['title']
+                    for result in results
+                    if result['title']]
+                uprns = list(itertools.chain.from_iterable([
+                    result['uprns']
+                    for result in results]))
+                site_info['num_polygons_from_latlong_addressbase_uprn'] = \
+                    len(results)
+                polygons = [result['polygon'] for result in results]
+                site_info['num_unique_polygons_from_latlong_addressbase_uprn'] = \
+                    len(set(polygons))
+                # site_info['polygon_from_latlong_addressbase_uprn'] = \
+                #     [result['polygon'] for result in results]
+                site_info['num_titles_from_latlong_addressbase_uprn'] = \
+                    len(titles)
+                site_info['titles_from_latlong_addressbase_uprn'] = \
+                    titles
+                site_info['num_uprns_from_latlong_addressbase_uprn'] = \
+                    len(uprns)
+                site_info['uprns_from_latlong_addressbase_uprn'] = \
+                    uprns
+                if site_info.get('uprn_status') != 'ok':
+                    if len(uprns) > 0:
+                        # we have derived the UPRN that Land Registry DOES
+                        # have with a polygon in the same place.
+                        uprn = uprns[0]
+                        site_info['assumed_uprn'] = \
+                            format_uprn_for_csv(uprn)
+                        try:
+                            lr_data = lookup_uprn_in_lr(uprn)
+                        except FinishedProcessingRow as ex:
+                            return str(ex) + ' (assumed uprn)'
+            if self.vacant_csv and not self.filter_uprn:
                 self.write_vacant_csv_row(site_info)
         if not lr_data:
             # We can't find polygons without a matching uprn, therefore
@@ -183,7 +187,8 @@ class CambridgeLandsImportCommand(CSVImportCommand):
                     ))
             ),
             "authority": row[0],
-            "owner": 'Cambridge',
+            #"owner": 'Cambridge',
+            "full_address": row[7],
             "estimated_floor_space": estimated_floor_space,
             "srid": 4326
         }
@@ -209,7 +214,7 @@ class CambridgeLandsImportCommand(CSVImportCommand):
         self.vacant_csv.writerow(site_dict)
 
     def postprocess(self):
-        if self.vacant_csv_file:
+        if self.vacant_csv_file and not self.filter_uprn:
             self.vacant_csv_file.close()
             print('Written {}'.format(self.vacant_csv_filename))
 
