@@ -7,7 +7,7 @@ class SchoolsImportCommand(CSVImportCommand):
 
     def process_row(self, row):
         # Only import schools with easting and northing information
-        if row[68] and row[69]:
+        if row[70] and row[71]:
             if 'Primary' in row[11]:
                 school_type = 'PRIMARY'
             elif 'Secondary' in row[11]:
@@ -25,7 +25,7 @@ class SchoolsImportCommand(CSVImportCommand):
                 "postcode": row[44].replace(' ', ''),
                 "point": {
                     "type": "Point",
-                    "coordinates": [float(row[68]), float(row[69])]
+                    "coordinates": [float(row[70]), float(row[71])]
                 },
                 "srid": 27700
             }
