@@ -29,7 +29,9 @@ class CambridgeLandsImportCommand(CSVImportCommand):
             self.lr_api_url = self.lr_api_url + '/'
 
     def get_lr_data(self, uprn):
-        url = '{0}{1}'.format(self.lr_api_url, uprn)
+        # some gazetteer database applications will pad UPRNs that are less
+        # than 12 digits with zeros BUT the HMRC API needs you to remove them
+        url = '{0}{1}'.format(self.lr_api_url, int(uprn))
         headers = {'Authorization': 'Token {0}'.format(self.lr_token)}
         response = requests.get(url, headers=headers)
 
