@@ -52,12 +52,14 @@ class CSVImportCommand(object):
                 for count, row in enumerate(reader):
                     outcome = self.process_row(row)
                     outcomes[outcome or 'processed'].append(row)
-                    if count % 100 == 0:
+                    if (count + 1) % 100 == 0:
                         print_outcomes_and_rate(
                             outcomes, start_time)
                         print()
-        print_outcomes_and_rate(
-            outcomes, start_time)
+        print_outcomes_and_rate(outcomes, start_time)
+        if 'postprocess' in dir(self):
+            self.postprocess()
+            print_outcomes_and_rate(outcomes, start_time)
 
 
 class ShapefileImportCommand(object):
@@ -80,5 +82,9 @@ class ShapefileImportCommand(object):
                 continue
             outcome = self.process_record(record)
             outcomes[outcome or 'processed'].append(record.record[0])
-            if count % 100 == 0:
+            if (count + 1) % 100 == 0:
                 print_outcomes_and_rate(outcomes, start_time)
+        print_outcomes_and_rate(outcomes, start_time)
+        if 'postprocess' in dir(self):
+            self.postprocess()
+            print_outcomes_and_rate(outcomes, start_time)
