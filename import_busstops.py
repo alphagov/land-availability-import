@@ -10,14 +10,14 @@ class BusImportCommand(CSVImportCommand):
             "amic_code": row[0],
             "point": {
                 "type": "Point",
-                "coordinates": [float(row[2]), float(row[3])]
+                "coordinates": [float(row[29]), float(row[30])]
             },
             "name": row[4],
-            "direction": row[5],
-            "area": row[6],
-            "road": row[7],
-            "nptg_code": row[9],
-            "srid": 27700
+            "direction": row[14],
+            "area": row[19],
+            "road": row[10],
+            "nptg_code": row[1],
+            "srid": 4326
         }
 
         headers = {'Authorization': 'Token {0}'.format(self.token)}
@@ -42,7 +42,7 @@ class BusImportCommand(CSVImportCommand):
     default='http://localhost:8000/api/busstops/', help='API url')
 @click.option('--apitoken', help='API authentication token')
 def import_busstops(filenames, apiurl, apitoken):
-    command = BusImportCommand(filenames, apiurl, apitoken)
+    command = BusImportCommand(filenames, apiurl, apitoken, True)
     command.run()
 
 if __name__ == '__main__':
