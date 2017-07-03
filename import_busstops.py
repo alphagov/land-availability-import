@@ -48,7 +48,20 @@ class BusImportCommand(CSVImportCommand):
     default='http://localhost:8000/api/busstops/', help='API url')
 @click.option('--apitoken', help='API authentication token')
 def import_busstops(filenames, apiurl, apitoken):
-    command = BusImportCommand(filenames, apiurl, apitoken, True)
+    expected_header = [
+        'ATCOCode', 'NaptanCode', 'PlateCode', 'CleardownCode', 'CommonName',
+        'CommonNameLang', 'ShortCommonName', 'ShortCommonNameLang',	'Landmark',
+        'LandmarkLang',	'Street', 'StreetLang',	'Crossing',	'CrossingLang',
+        'Indicator', 'IndicatorLang', 'Bearing', 'NptgLocalityCode',
+        'LocalityName',	'ParentLocalityName', 'GrandParentLocalityName',
+        'Town', 'TownLang',	'Suburb', 'SuburbLang',	'LocalityCentre',
+        'GridType',	'Easting', 'Northing', 'Longitude',	'Latitude',	'StopType',
+        'BusStopType', 'TimingStatus', 'DefaultWaitTime', 'Notes', 'NotesLang',
+        'AdministrativeAreaCode', 'CreationDateTime', 'ModificationDateTime',
+        'RevisionNumber', 'Modification', 'Status'
+    ]
+    command = BusImportCommand(
+        filenames, apiurl, apitoken, True, expected_header=expected_header)
     command.run()
 
 if __name__ == '__main__':
