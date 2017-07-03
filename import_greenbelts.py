@@ -1,5 +1,17 @@
-# NB this script uses 2.8GB memory to store all the polygons before importing
-# them. This is needed to aggregate them.
+'''
+Imports Greenbelt shapefiles into landavailability-api.
+
+NB this script uses 2.8GB memory to store all the polygons before importing
+them. This is needed to aggregate them.
+
+Example usage:
+
+    curl 'http://maps.communities.gov.uk/geoserver/dclg_inspire/ows?service=WFS&version=2.0.0&request=GetFeature&typeName=dclg_inspire:Local_Authority_Greenbelt_boundaries_2013-14&outputFormat=shape-zip&srsName=EPSG:4326' -o ~/Downloads/greenbelt.shp.zip
+    mkdir ~/Downloads/greenbelt
+    unzip ~/Downloads/greenbelt.shp.zip -d ~/Downloads/greenbelt
+    workon landavailability-import
+    python import_greenbelts.py --filename ~/Downloads/greenbelt/Local_Authority_Greenbelt_boundaries_2013-14.shp --apiurl http://localhost:8000/api/greenbelts/ --apitoken $API_LOCAL_TOKEN
+'''
 import sys
 
 import requests
