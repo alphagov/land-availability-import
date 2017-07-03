@@ -58,6 +58,8 @@ class CSVImportCommand(object):
                         print()
         print_outcomes_and_rate(
             outcomes, start_time)
+        if 'postprocess' in dir(self):
+            self.postprocess()
 
 
 class ShapefileImportCommand(object):

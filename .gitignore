@@ -87,3 +87,6 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# AddressBase cache
+hmrc_api.sqlite
