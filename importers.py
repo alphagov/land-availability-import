@@ -9,15 +9,21 @@ from utils import print_outcomes_and_rate
 class CSVImportCommand(object):
     def __init__(
             self, file_names, api_url, token,
-            skip_header=False, encoding=None):
+            skip_header=False, encoding=None, expected_header=None):
         self.api_url = api_url
         self.token = token
         self.file_names = file_names
         self.skip_header = skip_header
         self.encoding = encoding
+        self.expected_header = expected_header
 
     def process_row(self, row):
         pass
+
+    def check_header(self, header, expected_header):
+        if header != expected_header:
+            return False
+        return True
 
     def run(self):
         for file_name in self.file_names:
@@ -26,13 +32,23 @@ class CSVImportCommand(object):
                     file_name,
                     newline='', encoding=self.encoding) as csvfile:
 
-                reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-
-                if self.skip_header:
-                    next(reader)
-
                 outcomes = defaultdict(list)
                 start_time = time.time()
+                reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+
+                # If we want to skip the header from process_row()
+                # it means we have an header. We analyse if the header is
+                # in the format we expect, if we provide an expected_header
+                if self.skip_header:
+                    header = next(reader)
+
+                    if self.expected_header:
+                        if not self.check_header(header, self.expected_header):
+                            print(
+                                'ERROR - Headers not matching: \n{0}\n{1}'.format(
+                                    header, self.expected_header))
+                            break
+
                 for count, row in enumerate(reader):
                     outcome = self.process_row(row)
                     outcomes[outcome or 'processed'].append(row)
