@@ -4,6 +4,7 @@ from collections import defaultdict
 import time
 
 from utils import print_outcomes_and_rate
+from loopstats import LoopStats
 
 
 class CSVImportCommand(object):
@@ -73,18 +74,16 @@ class ShapefileImportCommand(object):
 
     def run(self):
         print('Processing shapefile {}'.format(self.file_name))
-        outcomes = defaultdict(list)
-        start_time = time.time()
+        loopstats = LoopStats()
         shp_reader = shapefile.Reader(self.file_name)
-        for count, record in enumerate(shp_reader.iterShapeRecords()):
+        for record in shp_reader.iterShapeRecords():
             if record.shape.shapeType == shapefile.NULL:
-                outcomes['no shapefile'].append(record.record[0])
+                loopstats.add('no shapefile', record.record[0])
                 continue
             outcome = self.process_record(record)
-            outcomes[outcome or 'processed'].append(record.record[0])
-            if (count + 1) % 100 == 0:
-                print_outcomes_and_rate(outcomes, start_time)
-        print_outcomes_and_rate(outcomes, start_time)
+            loopstats.add(outcome, record.record[0])
+            loopstats.print_every_x_iterations(100)
+        print(loopstats)
         if 'postprocess' in dir(self):
             self.postprocess()
-            print_outcomes_and_rate(outcomes, start_time)
+            print(loopstats)

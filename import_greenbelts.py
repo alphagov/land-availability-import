@@ -1,17 +1,21 @@
+# NB this script uses 2.8GB memory to store all the polygons before importing
+# them. This is needed to aggregate them.
 import sys
 
 import requests
 import click
 
 from importers import ShapefileImportCommand
+from loopstats import LoopStats
 
 
 class GreenbeltsImportCommand(ShapefileImportCommand):
 
-    def __init__(self, file_name, api_url, token):
+    def __init__(self, file_name, api_url, token, trial_run):
         assert api_url.endswith('/api/greenbelts/')
-        self.current_greenbelt = None
+        self.greenbelts = {}
         self.processed_identifiers = set()
+        self.trial_run = trial_run
         super(GreenbeltsImportCommand, self).__init__(
             file_name, api_url, token)
 
@@ -33,62 +37,55 @@ class GreenbeltsImportCommand(ShapefileImportCommand):
         # ['Stoke Greenbelt', 'Newcastle-under-Lyme District (B)', 'E07000195', 5.47853192949, 1.2090565881]
         greenbelt_identifier = '{} | {}'.format(greenbelt_name, la_name)
 
-        def reset_current_greenbelt():
-            self.current_greenbelt = dict(
-                greenbelt_identifier=greenbelt_identifier,
+        if greenbelt_identifier not in self.greenbelts:
+            self.greenbelts[greenbelt_identifier] = dict(
                 greenbelt_name=greenbelt_name,
                 la_name=la_name,
                 la_ons_id=la_ons_id,
-                perimeter_km=perimeter_km,
-                area_ha=area_ha,
-                shape=None,
+                perimeter_km=0.0,
+                area_ha=0.0,
+                shape={
+                    "type": "MultiPolygon",
+                    "coordinates": []
+                    }
                 )
-            self.add_shape_to_current_greenbelt(record.shape.__geo_interface__)
-        if not self.current_greenbelt:
-            reset_current_greenbelt()
-            return 'first record'
-        elif self.current_greenbelt['greenbelt_identifier'] == \
-                greenbelt_identifier:
-            self.current_greenbelt['perimeter_km'] += perimeter_km
-            self.current_greenbelt['area_ha'] += area_ha
-            self.add_shape_to_current_greenbelt(record.shape.__geo_interface__)
-            return 'merged with another record for import.'
+            result = 'new greenbelt'
         else:
-            result_of_import = self.import_(**self.current_greenbelt)
-            if greenbelt_identifier in self.processed_identifiers:
-                print('FATAL ERROR: Non-consecutive identifier {}'.format(
-                    greenbelt_identifier))
-                sys.exit(1)
-            self.processed_identifiers.add(greenbelt_identifier)
-            reset_current_greenbelt()
-            return result_of_import
-
-    def postprocess(self):
-        if self.current_greenbelt:
-            return self.import_(**self.current_greenbelt)
-
-    def add_shape_to_current_greenbelt(self, shape):
-        if not self.current_greenbelt['shape']:
-            self.current_greenbelt['shape'] = {
-                "type": "MultiPolygon",
-                "coordinates": []
-                }
+            result = 'added to existing greenbelt'
+        greenbelt = self.greenbelts[greenbelt_identifier]
+        greenbelt['perimeter_km'] += perimeter_km
+        greenbelt['area_ha'] += area_ha
+        shape = record.shape.__geo_interface__
         if shape['type'] == 'MultiPolygon':
-            self.current_greenbelt['shape']['coordinates'].extend(
+            greenbelt['shape']['coordinates'].extend(
                 shape['coordinates'])
         elif shape['type'] == 'Polygon':
-
-            self.current_greenbelt['shape']['coordinates'].append(
+            greenbelt['shape']['coordinates'].append(
                 shape['coordinates'])
         else:
             raise Exception(
                 'ERROR: not sure how to deal with shape {}'.format(
                     shape['type']))
+        return result
+
+    def postprocess(self):
+        if self.trial_run:
+            print('Skipping import (because --trial-run)')
+            sys.exit(0)
+
+        loop_stats = LoopStats(len(self.greenbelts))
+        print ('\nImporting {} greenbelts'.format(len(self.greenbelts)))
+        for greenbelt_identifier, greenbelt in self.greenbelts.items():
+            outcome = self.import_(greenbelt_identifier=greenbelt_identifier,
+                                   **greenbelt)
+            loop_stats.add(outcome, greenbelt_identifier)
+            loop_stats.print_every_x_iterations(10)
+        print(loop_stats)
 
     def import_(self, greenbelt_identifier=None, greenbelt_name=None,
                 la_name=None, la_ons_id=None, perimeter_km=None, area_ha=None,
                 shape=None):
-        #print('Importing: {} / {}'.format(greenbelt_name, la_name))
+        print('Importing: {} / {}'.format(greenbelt_name, la_name))
 
         data = {
             "code": greenbelt_identifier,  # couldn't see it in the shapefile,
@@ -127,14 +124,13 @@ class GreenbeltsImportCommand(ShapefileImportCommand):
 
 @click.command()
 @click.option('--filename', help='Greenbelts *.shp file (ie unzipped)')
-@click.option(
-    '--apiurl',
-    default='http://localhost:8000/api/greenbelts/',
-    help='Land Availability API url, with ending /api/greenbelts/')
+@click.option('--apiurl',
+              default='http://localhost:8000/api/greenbelts/',
+              help='Land Availability API url, with ending /api/greenbelts/')
 @click.option('--apitoken', help='API authentication token')
-@click.option('--trial-run', action='store', help='Does everything up to but '
+@click.option('--trial-run', is_flag=True, help='Does everything up to but '
               'not including writing the data to the API')
-def import_greenbelts(filename, apiurl, apitoken):
+def import_greenbelts(filename, apiurl, apitoken, trial_run):
     command = GreenbeltsImportCommand(filename, apiurl, apitoken, trial_run)
     command.run()
 
