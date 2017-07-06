@@ -1,9 +1,6 @@
 import csv
 import shapefile
-from collections import defaultdict
-import time
 
-from utils import print_outcomes_and_rate
 from loopstats import LoopStats
 
 
@@ -33,8 +30,7 @@ class CSVImportCommand(object):
                     file_name,
                     newline='', encoding=self.encoding) as csvfile:
 
-                outcomes = defaultdict(list)
-                start_time = time.time()
+                loopstats = LoopStats()
                 reader = csv.reader(csvfile, delimiter=',', quotechar='"')
 
                 # If we want to skip the header from process_row()
@@ -43,24 +39,20 @@ class CSVImportCommand(object):
                 if self.skip_header:
                     header = next(reader)
 
-                    if self.expected_header:
+                    if 'expected_header' in dir(self):
                         if not self.check_header(header, self.expected_header):
-                            print(
-                                'ERROR - Headers not matching: \n{0}\n{1}'.format(
-                                    header, self.expected_header))
+                            print('ERROR - Headers not matching: \n{0}\n{1}'
+                                  .format(header, self.expected_header))
                             break
 
                 for count, row in enumerate(reader):
                     outcome = self.process_row(row)
-                    outcomes[outcome or 'processed'].append(row)
-                    if (count + 1) % 100 == 0:
-                        print_outcomes_and_rate(
-                            outcomes, start_time)
-                        print()
-        print_outcomes_and_rate(outcomes, start_time)
+                    loopstats.add(outcome, row)
+                    loopstats.print_every_x_iterations(100)
+        print(loopstats)
         if 'postprocess' in dir(self):
             self.postprocess()
-            print_outcomes_and_rate(outcomes, start_time)
+            print(loopstats)
 
 
 class ShapefileImportCommand(object):
