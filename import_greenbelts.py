@@ -109,7 +109,7 @@ class GreenbeltsImportCommand(ShapefileImportCommand):
             "area": round(float(area_ha), 2),
             "perimeter": round(
                 float(perimeter_km), 2),
-            "geom": shape,
+            "geom": add_third_dimension(shape),
             "srid": 4326
         }
 
@@ -133,6 +133,27 @@ class GreenbeltsImportCommand(ShapefileImportCommand):
         #print('{0} imported correctly'.format(greenbelt_name))
         return 'imported'
 
+def add_third_dimension(shape):
+    # e.g. {'type': 'Polygon', 'coordinates': (((-1.30442, 53.31290), ...))}
+    if shape['type'] == 'Polygon':
+        shape['coordinates'] = \
+            add_third_dimension_to_polygon(shape['coordinates'])
+    elif shape['type'] == 'MultiPolygon':
+        shape['coordinates'] = [
+            add_third_dimension_to_polygon(polygon)
+            for polygon in shape['coordinates']
+            ]
+    else:
+        raise NotImplementedError(shape['type'])
+    return shape
+
+def add_third_dimension_to_polygon(polygon):
+    return [add_third_dimension_to_ring(ring)
+            for ring in polygon]
+
+def add_third_dimension_to_ring(ring):
+    # e.g. ((-1.30442, 53.31290), ...)
+    return [(x, y, 0) for x, y in ring]
 
 @click.command()
 @click.option('--filename', help='Greenbelts *.shp file (ie unzipped)')
