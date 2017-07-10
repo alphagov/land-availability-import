@@ -1,10 +1,37 @@
 import csv
 import shapefile
+import os
+from datetime import datetime
 
 from loopstats import LoopStats
+from notifications_python_client.notifications import NotificationsAPIClient
 
 
-class CSVImportCommand(object):
+class ImportCommand(object):
+    def notify_import_completed(self, imported_files):
+        EMAIL_TO_NOTIFY = os.environ.get('EMAIL_TO_NOTIFY')
+        NOTIFY_API_TOKEN = os.environ.get('NOTIFY_API_TOKEN')
+        NOTIFY_EMAIL_TEMPLATE = os.environ.get('NOTIFY_EMAIL_TEMPLATE')
+
+        if EMAIL_TO_NOTIFY and NOTIFY_API_TOKEN and NOTIFY_EMAIL_TEMPLATE:
+            notifications_client = NotificationsAPIClient(NOTIFY_API_TOKEN)
+
+            personalisation = {
+                'import_name': self.__class__.__name__,
+                'completion_time': datetime.now().isoformat(),
+                'imported_files': imported_files,
+                'import_url': self.api_url
+            }
+
+            response = notify_client.send_email_notification(
+                email_address=EMAIL_TO_NOTIFY,
+                template_id=NOTIFY_EMAIL_TEMPLATE,
+                personalisation=personalisation,
+                reference=None
+            )
+
+
+class CSVImportCommand(ImportCommand):
     def __init__(
             self, file_names, api_url, token,
             skip_header=False, encoding=None, expected_header=None):
@@ -49,13 +76,17 @@ class CSVImportCommand(object):
                     outcome = self.process_row(row)
                     loopstats.add(outcome, row)
                     loopstats.print_every_x_iterations(100)
+
+        # Use GOV.UK Notify to send a notification when import is completed
+        self.notify_import_completed(''.join(self.file_names))
+
         print(loopstats)
         if 'postprocess' in dir(self):
             self.postprocess()
             print(loopstats)
 
 
-class ShapefileImportCommand(object):
+class ShapefileImportCommand(ImportCommand):
     def __init__(self, file_name, api_url, token):
         self.api_url = api_url
         self.token = token
@@ -75,6 +106,10 @@ class ShapefileImportCommand(object):
             outcome = self.process_record(record)
             loopstats.add(outcome, record.record[0])
             loopstats.print_every_x_iterations(100)
+
+        # Use GOV.UK Notify to send a notification when import is completed
+        self.notify_import_completed(self.file_name)
+
         print(loopstats)
         if 'postprocess' in dir(self):
             self.postprocess()
