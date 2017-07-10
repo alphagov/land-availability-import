@@ -5,6 +5,11 @@ import click
 
 class BusImportCommand(CSVImportCommand):
 
+    def __init__(self, *kargs, **kwargs):
+        self.dry_run = kwargs.pop('dry_run')
+        super(BusImportCommand, self).__init__(
+            *kargs, **kwargs)
+
     def process_row(self, row):
         try:
             # Import the record only if it's one of the possible bus stops
@@ -23,6 +28,8 @@ class BusImportCommand(CSVImportCommand):
                     "srid": 4326
                 }
 
+                if self.dry_run:
+                    return 'didn\'t import - dry run'
                 headers = {'Authorization': 'Token {0}'.format(self.token)}
 
                 response = requests.post(
@@ -47,22 +54,26 @@ class BusImportCommand(CSVImportCommand):
     '--apiurl',
     default='http://localhost:8000/api/busstops/', help='API url')
 @click.option('--apitoken', help='API authentication token')
-def import_busstops(filenames, apiurl, apitoken):
+@click.option('--dry-run', is_flag=True, help='Does everything up to but '
+              'not including writing the data to the API')
+def import_busstops(filenames, apiurl, apitoken, dry_run):
     expected_header = [
         'ATCOCode', 'NaptanCode', 'PlateCode', 'CleardownCode', 'CommonName',
-        'CommonNameLang', 'ShortCommonName', 'ShortCommonNameLang',	'Landmark',
-        'LandmarkLang',	'Street', 'StreetLang',	'Crossing',	'CrossingLang',
+        'CommonNameLang', 'ShortCommonName', 'ShortCommonNameLang', 'Landmark',
+        'LandmarkLang', 'Street', 'StreetLang', 'Crossing', 'CrossingLang',
         'Indicator', 'IndicatorLang', 'Bearing', 'NptgLocalityCode',
-        'LocalityName',	'ParentLocalityName', 'GrandParentLocalityName',
-        'Town', 'TownLang',	'Suburb', 'SuburbLang',	'LocalityCentre',
-        'GridType',	'Easting', 'Northing', 'Longitude',	'Latitude',	'StopType',
+        'LocalityName', 'ParentLocalityName', 'GrandParentLocalityName',
+        'Town', 'TownLang', 'Suburb', 'SuburbLang', 'LocalityCentre',
+        'GridType', 'Easting', 'Northing', 'Longitude', 'Latitude', 'StopType',
         'BusStopType', 'TimingStatus', 'DefaultWaitTime', 'Notes', 'NotesLang',
         'AdministrativeAreaCode', 'CreationDateTime', 'ModificationDateTime',
         'RevisionNumber', 'Modification', 'Status'
     ]
     command = BusImportCommand(
-        filenames, apiurl, apitoken, True, expected_header=expected_header)
+        filenames, apiurl, apitoken, True, expected_header=expected_header,
+        encoding='latin1', dry_run=dry_run)
     command.run()
+
 
 if __name__ == '__main__':
     import_busstops()
