@@ -11,41 +11,37 @@ class BusImportCommand(CSVImportCommand):
             *kargs, **kwargs)
 
     def process_row(self, row):
-        try:
-            # Import the record only if it's one of the possible bus stops
-            if row[31] in ['BCT', 'BCE', 'BST', 'BCS', 'BCQ']:
-                bus_stop = {
-                    "amic_code": row[0],
-                    "point": {
-                        "type": "Point",
-                        "coordinates": [float(row[29]), float(row[30])]
-                    },
-                    "name": row[4],
-                    "direction": row[14],
-                    "area": row[19],
-                    "road": row[10],
-                    "nptg_code": row[1],
-                    "srid": 4326
-                }
+        # Import the record only if it's one of the possible bus stops
+        if row[31] in ['BCT', 'BCE', 'BST', 'BCS', 'BCQ']:
+            bus_stop = {
+                "amic_code": row[0],
+                "point": {
+                    "type": "Point",
+                    "coordinates": [float(row[29]), float(row[30])]
+                },
+                "name": row[4],
+                "direction": row[14],
+                "area": row[19],
+                "road": row[10],
+                "nptg_code": row[1],
+                "srid": 4326
+            }
 
-                if self.dry_run:
-                    return 'didn\'t import - dry run'
-                headers = {'Authorization': 'Token {0}'.format(self.token)}
+            if self.dry_run:
+                return 'didn\'t import - dry run'
+            headers = {'Authorization': 'Token {0}'.format(self.token)}
 
-                response = requests.post(
-                    self.api_url,
-                    json=bus_stop,
-                    headers=headers)
+            response = requests.post(
+                self.api_url,
+                json=bus_stop,
+                headers=headers)
 
-                if response.status_code == 201:
-                    print('{0} imported correctly'.format(row[0]))
-                else:
-                    print(
-                        'ERROR: could not import {0} because of {1}'.format(
-                            row[0], response.text))
-        except UnicodeDecodeError as ex:
-            print(
-                'ERROR: could not import {0} because of {1}'.format(row, ex))
+            if response.status_code == 201:
+                print('{0} imported correctly'.format(row[0]))
+            else:
+                print(
+                    'ERROR: could not import {0} because of {1}'.format(
+                        row[0], response.text))
 
 
 @click.command()
