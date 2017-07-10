@@ -34,13 +34,15 @@ class ImportCommand(object):
 class CSVImportCommand(ImportCommand):
     def __init__(
             self, file_names, api_url, token,
-            skip_header=False, encoding=None, expected_header=None):
+            skip_header=False, encoding=None, expected_header=None,
+            num_expected_records=None):
         self.api_url = api_url
         self.token = token
         self.file_names = file_names
         self.skip_header = skip_header
         self.encoding = encoding
         self.expected_header = expected_header
+        self.num_expected_records = num_expected_records
 
     def process_row(self, row):
         pass
@@ -57,7 +59,7 @@ class CSVImportCommand(ImportCommand):
                     file_name,
                     newline='', encoding=self.encoding) as csvfile:
 
-                loopstats = LoopStats()
+                loopstats = LoopStats(self.num_expected_records)
                 reader = csv.reader(csvfile, delimiter=',', quotechar='"')
 
                 # If we want to skip the header from process_row()
@@ -87,17 +89,18 @@ class CSVImportCommand(ImportCommand):
 
 
 class ShapefileImportCommand(ImportCommand):
-    def __init__(self, file_name, api_url, token):
+    def __init__(self, file_name, api_url, token, num_expected_records=None):
         self.api_url = api_url
         self.token = token
         self.file_name = file_name
+        self.num_expected_records = num_expected_records
 
     def process_record(self, record):
         pass
 
     def run(self):
         print('Processing shapefile {}'.format(self.file_name))
-        loopstats = LoopStats()
+        loopstats = LoopStats(self.num_expected_records)
         shp_reader = shapefile.Reader(self.file_name)
         for record in shp_reader.iterShapeRecords():
             if record.shape.shapeType == shapefile.NULL:
