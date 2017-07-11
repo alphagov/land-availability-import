@@ -23,7 +23,7 @@ class ImportCommand(object):
                 'import_url': self.api_url
             }
 
-            response = notify_client.send_email_notification(
+            response = notifications_client.send_email_notification(
                 email_address=EMAIL_TO_NOTIFY,
                 template_id=NOTIFY_EMAIL_TEMPLATE,
                 personalisation=personalisation,
