@@ -7,6 +7,7 @@ class BusImportCommand(CSVImportCommand):
 
     def __init__(self, *kargs, **kwargs):
         self.dry_run = kwargs.pop('dry_run')
+        kwargs['num_expected_records'] = 430525
         super(BusImportCommand, self).__init__(
             *kargs, **kwargs)
 
