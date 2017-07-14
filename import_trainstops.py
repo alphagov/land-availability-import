@@ -62,7 +62,7 @@ def import_trainstops(filenames, apiurl, apitoken):
     ]
     command = TrainImportCommand(
         filenames, apiurl, apitoken, True, expected_header=expected_header,
-        encoding='latin1', dry_run=dry_run)
+        encoding='latin1')
     command.run()
 
 if __name__ == '__main__':

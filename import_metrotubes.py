@@ -58,7 +58,8 @@ def import_metrotubes(filenames, apiurl, apitoken):
         'RevisionNumber', 'Modification', 'Status'
     ]
     command = MetroTubeImportCommand(
-        filenames, apiurl, apitoken, True, encoding='ISO-8859-1', expected_header=expected_header)
+        filenames, apiurl, apitoken, True, encoding='ISO-8859-1',
+        expected_header=expected_header)
     command.run()
 
 if __name__ == '__main__':
